@@ -8,75 +8,55 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Fix all files
+      - name: Build fresh APK in clean folder
         run: |
-          rm -f app/src/main/java/com/coopbusinesses/cloud/MainActivity.kt
-          cat > settings.gradle <<'ENDOFFILE'
+          mkdir -p /tmp/freshapp/app/src/main/java/com/coopbusinesses/cloud
+          mkdir -p /tmp/freshapp/app/src/main/res/values
+          
+          cat > /tmp/freshapp/settings.gradle <<'EOF'
           pluginManagement {
-              repositories {
-                  google()
-                  mavenCentral()
-                  gradlePluginPortal()
-              }
-          }
-          dependencyResolutionManagement {
-              repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-              repositories {
-                  google()
-                  mavenCentral()
-              }
+              repositories { google(); mavenCentral(); gradlePluginPortal() }
           }
           include ':app'
-          ENDOFFILE
-          echo "// empty" > build.gradle
-          mkdir -p app/src/main/res/values
-          mkdir -p app/src/main/java/com/coopbusinesses/cloud
-          echo '<resources><string name="app_name">Coop App</string></resources>' > app/src/main/res/values/strings.xml
-          echo '<resources><style name="Theme.CoopApp" parent="android:Theme.Light"></style></resources>' > app/src/main/res/values/themes.xml
-          cat > app/build.gradle <<'ENDOFFILE'
+          EOF
+          
+          echo "" > /tmp/freshapp/build.gradle
+          
+          cat > /tmp/freshapp/app/build.gradle <<'EOF'
           plugins { id 'com.android.application' }
           android {
               namespace 'com.coopbusinesses.cloud'
               compileSdk 34
-              defaultConfig {
-                  applicationId "com.coopbusinesses.cloud"
-                  minSdk 21
-                  targetSdk 34
-                  versionCode 1
-                  versionName "1.0"
-              }
+              defaultConfig { applicationId "com.coopbusinesses.cloud"; minSdk 21; targetSdk 34; versionCode 1; versionName "1.0" }
           }
-          dependencies {
-              implementation 'androidx.appcompat:appcompat:1.6.1'
-          }
-          ENDOFFILE
-          cat > app/src/main/AndroidManifest.xml <<'ENDOFFILE'
+          dependencies { implementation 'androidx.appcompat:appcompat:1.6.1' }
+          EOF
+          
+          echo '<resources><string name="app_name">Coop App</string></resources>' > /tmp/freshapp/app/src/main/res/values/strings.xml
+          echo '<resources></resources>' > /tmp/freshapp/app/src/main/res/values/colors.xml
+          
+          cat > /tmp/freshapp/app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android" android:installLocation="preferExternal">
               <application android:label="Coop App">
                   <activity android:name=".MainActivity" android:exported="true">
-                      <intent-filter>
-                          <action android:name="android.intent.action.MAIN"/>
-                          <category android:name="android.intent.category.LAUNCHER"/>
-                      </intent-filter>
+                      <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
                   </activity>
               </application>
           </manifest>
-          ENDOFFILE
-          cat > app/src/main/java/com/coopbusinesses/cloud/MainActivity.java <<'ENDOFFILE'
+          EOF
+          
+          cat > /tmp/freshapp/app/src/main/java/com/coopbusinesses/cloud/MainActivity.java <<'EOF'
           package com.coopbusinesses.cloud;
           import android.os.Bundle;
           import androidx.appcompat.app.AppCompatActivity;
           import android.widget.TextView;
           public class MainActivity extends AppCompatActivity {
-              protected void onCreate(Bundle b){
-                  super.onCreate(b);
-                  TextView tv=new TextView(this);
-                  tv.setText("Coop App SD Card Ready");
-                  setContentView(tv);
-              }
+              protected void onCreate(Bundle b){ super.onCreate(b); TextView tv=new TextView(this); tv.setText("Coop SD Card Ready"); setContentView(tv); }
           }
-          ENDOFFILE
+          EOF
+          
+          ls -R /tmp/freshapp
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -84,14 +64,15 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build
+      - name: Build in fresh folder
         uses: gradle/gradle-build-action@v3
         with:
           gradle-version: 8.5
           arguments: assembleDebug
+          build-root: /tmp/freshapp
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: coop-app-sd-final
-          path: app/build/outputs/apk/debug/*.apk
+          name: coop-app-sd-working
+          path: /tmp/freshapp/app/build/outputs/apk/debug/*.apk

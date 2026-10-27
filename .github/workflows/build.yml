@@ -1,4 +1,4 @@
-name: Build Coop APK
+ name: Build Coop APK - Final Fix
 
 on: [push]
 
@@ -12,23 +12,56 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Create missing files
+      - name: Rebuild complete project
         run: |
+          cat > settings.gradle <<'EOF'
+          include ':app'
+          EOF
+          
+          cat > build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application' version '8.1.0' apply false
+          }
+          EOF
+          
+          cat > app/build.gradle <<'EOF'
+          plugins {
+              id 'com.android.application'
+          }
+          android {
+              namespace 'com.coopbusinesses.cloud'
+              compileSdk 34
+              defaultConfig {
+                  applicationId "com.coopbusinesses.cloud"
+                  minSdk 21
+                  targetSdk 34
+                  versionCode 1
+                  versionName "1.0"
+              }
+              buildTypes {
+                  release { minifyEnabled false }
+              }
+              compileOptions {
+                  sourceCompatibility JavaVersion.VERSION_1_8
+                  targetCompatibility JavaVersion.VERSION_1_8
+              }
+          }
+          dependencies {
+              implementation 'androidx.appcompat:appcompat:1.6.1'
+          }
+          EOF
+
           mkdir -p app/src/main/res/values
           mkdir -p app/src/main/java/com/coopbusinesses/cloud
-          echo '<resources><string name="app_name">Coop App</string></resources>' > app/src/main/res/values/strings.xml
+          echo '<resources><string name="app_name">Coop App SD</string></resources>' > app/src/main/res/values/strings.xml
           echo '<resources><style name="Theme.CoopApp" parent="Theme.AppCompat.Light.DarkActionBar"></style></resources>' > app/src/main/res/values/themes.xml
+          
           cat > app/src/main/AndroidManifest.xml <<'EOF'
           <?xml version="1.0" encoding="utf-8"?>
           <manifest xmlns:android="http://schemas.android.com/apk/res/android"
               android:installLocation="preferExternal">
-              <application
-                  android:allowBackup="true"
-                  android:theme="@style/Theme.CoopApp"
-                  android:label="@string/app_name">
-                  <activity
-                      android:name=".MainActivity"
-                      android:exported="true">
+              <application android:theme="@style/Theme.CoopApp" android:label="@string/app_name">
+                  <activity android:name=".MainActivity" android:exported="true">
                       <intent-filter>
                           <action android:name="android.intent.action.MAIN" />
                           <category android:name="android.intent.category.LAUNCHER" />
@@ -37,6 +70,7 @@ jobs:
               </application>
           </manifest>
           EOF
+          
           cat > app/src/main/java/com/coopbusinesses/cloud/MainActivity.kt <<'EOF'
           package com.coopbusinesses.cloud
           import android.os.Bundle
@@ -46,9 +80,9 @@ jobs:
               override fun onCreate(savedInstanceState: Bundle?) {
                   super.onCreate(savedInstanceState)
                   val tv = TextView(this)
-                  tv.text = "Coop App - SD Card Ready!"
-                  tv.textSize = 22f
-                  tv.setPadding(50,200,50,50)
+                  tv.text = "Coop App - SD Card Ready!\nInstall Location: preferExternal"
+                  tv.textSize = 20f
+                  tv.setPadding(40,300,40,40)
                   setContentView(tv)
               }
           }
@@ -63,5 +97,5 @@ jobs:
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: coop-app-apk-sd-card
+          name: coop-app-sd-card-final
           path: app/build/outputs/apk/debug/*.apk

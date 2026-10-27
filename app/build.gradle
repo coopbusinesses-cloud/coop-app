@@ -1,0 +1,12 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'com.coopbusinesses.cloud'
+    compileSdk 34
+    defaultConfig {
+        applicationId "com.coopbusinesses.cloud"
+        minSdk 21
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+    }
+}

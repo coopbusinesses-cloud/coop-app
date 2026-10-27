@@ -35,3 +35,4 @@ class CoopApp(App):
             self.total_label.text = 'Enter valid amount'
 
 CoopApp().run()
+

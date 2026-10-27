@@ -11,10 +11,11 @@ jobs:
       - name: Install Buildozer
         run: |
           sudo apt update
-          sudo apt install -y openjdk-17-jdk zip unzip
+          sudo apt install -y openjdk-17-jdk zip unzip libffi-dev libssl-dev
           pip install buildozer Cython==0.29.36
       - name: Build APK
-        run: buildozer android debug
+        run: |
+          buildozer android debug
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:

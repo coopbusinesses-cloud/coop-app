@@ -11,13 +11,57 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-      - name: Build with Gradle
+
+      - name: Create missing files
+        run: |
+          mkdir -p app/src/main/res/values
+          mkdir -p app/src/main/java/com/coopbusinesses/cloud
+          echo '<resources><string name="app_name">Coop App</string></resources>' > app/src/main/res/values/strings.xml
+          echo '<resources><style name="Theme.CoopApp" parent="Theme.AppCompat.Light.DarkActionBar"></style></resources>' > app/src/main/res/values/themes.xml
+          cat > app/src/main/AndroidManifest.xml <<'EOF'
+          <?xml version="1.0" encoding="utf-8"?>
+          <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+              android:installLocation="preferExternal">
+              <application
+                  android:allowBackup="true"
+                  android:theme="@style/Theme.CoopApp"
+                  android:label="@string/app_name">
+                  <activity
+                      android:name=".MainActivity"
+                      android:exported="true">
+                      <intent-filter>
+                          <action android:name="android.intent.action.MAIN" />
+                          <category android:name="android.intent.category.LAUNCHER" />
+                      </intent-filter>
+                  </activity>
+              </application>
+          </manifest>
+          EOF
+          cat > app/src/main/java/com/coopbusinesses/cloud/MainActivity.kt <<'EOF'
+          package com.coopbusinesses.cloud
+          import android.os.Bundle
+          import androidx.appcompat.app.AppCompatActivity
+          import android.widget.TextView
+          class MainActivity : AppCompatActivity() {
+              override fun onCreate(savedInstanceState: Bundle?) {
+                  super.onCreate(savedInstanceState)
+                  val tv = TextView(this)
+                  tv.text = "Coop App - SD Card Ready!"
+                  tv.textSize = 22f
+                  tv.setPadding(50,200,50,50)
+                  setContentView(tv)
+              }
+          }
+          EOF
+
+      - name: Build APK
         uses: gradle/gradle-build-action@v3
         with:
           gradle-version: 8.5
           arguments: assembleDebug
+
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: coop-app-apk
-          path: app/build/outputs/apk/debug/app-debug.apk
+          name: coop-app-apk-sd-card
+          path: app/build/outputs/apk/debug/*.apk

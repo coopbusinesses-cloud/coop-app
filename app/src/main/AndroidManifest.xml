@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.coopbusinesses.cloud"
     android:installLocation="preferExternal">
 
     <application
         android:allowBackup="true"
-        android:label="Coop App"
-        android:icon="@mipmap/ic_launcher">
-        
-        <activity android:name=".MainActivity"
+        android:theme="@style/Theme.CoopApp"
+        android:label="@string/app_name">
+        <activity
+            android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
+
 </manifest>
